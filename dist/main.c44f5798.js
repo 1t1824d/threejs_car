@@ -46264,6 +46264,12 @@ spotLight.shadow.mapSize.width = 4096;
 spotLight.shadow.mapSize.height = 4096;
 spotLight.map = texture;
 scene.add(spotLight);
+var intensity = 1;
+var rectLight = new THREE.RectAreaLight(0xffffff, intensity, width, height);
+rectLight.position.set(5, 5, 0);
+rectLight.lookAt(0, 0, 0);
+rectLight.map = texture;
+scene.add(rectLight);
 
 /* 
 **
@@ -46668,7 +46674,7 @@ var parent = module.bundle.parent;
 if ((!parent || !parent.isParcelRequire) && typeof WebSocket !== 'undefined') {
   var hostname = "" || location.hostname;
   var protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-  var ws = new WebSocket(protocol + '://' + hostname + ':' + "51721" + '/');
+  var ws = new WebSocket(protocol + '://' + hostname + ':' + "54232" + '/');
   ws.onmessage = function (event) {
     checkedAssets = {};
     assetsToAccept = [];

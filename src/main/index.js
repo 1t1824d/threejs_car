@@ -73,7 +73,12 @@ spotLight.shadow.mapSize.height = 4096;
 spotLight.map = texture
 scene.add(spotLight);
 
-
+const intensity = 1;
+const rectLight = new THREE.RectAreaLight( 0xffffff, intensity,  width, height );
+rectLight.position.set( 5, 5, 0 );
+rectLight.lookAt( 0, 0, 0 );
+rectLight.map = texture
+scene.add( rectLight )
 
 
 /* 
