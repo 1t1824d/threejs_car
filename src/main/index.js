@@ -237,7 +237,9 @@ let water1 = new Water(splineShapeGeometry, {
     distortionScale: 3.7,
     depthWrite: false,
     side: THREE.DoubleSide,
-    fog: scene.fog !== undefined
+    emissiveIntensity: 0.0,
+
+    //fog: scene.fog !== undefined
 
 });
 water1.position.y = 0;
@@ -248,7 +250,8 @@ Group.position.z = 0;
 Group.position.y = 0;
 Group.position.x = 0;
 Group.name = "MyWaterSurfaceDynamicEffectClass";
-scene.add(Group); //网格模型添加到场景中
+scene.add(Group); //网格模型添加到场景中/
+scene.fog = new THREE.Fog( 0xcccccc, 10, 15 );
 /////
 let doors = []
 let wheels = [];
