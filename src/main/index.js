@@ -11,6 +11,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutlinePass } from 'three/examples/jsm/postprocessing/OutlinePass.js';
 
 import TWEEN from '@tweenjs/tween.js'
+import { Water } from 'three/examples/jsm/objects/Water.js';
 /* 
 **
 */
@@ -64,6 +65,14 @@ directionalLight.castShadow = true
 scene.add(directionalLight)
 const texture = new THREE.TextureLoader().load(require("../assets/models/back.jpg"))
 var spotLight = new THREE.SpotLight(0xffffff, 10, 100, Math.PI / 4);
+let video = document.getElementById('video');
+video.play();
+video.addEventListener('play', function () {
+    this.currentTime = 3;
+});
+
+let textureVideo = new THREE.VideoTexture(video);
+textureVideo.colorSpace = THREE.SRGBColorSpace;
 spotLight.position.set(0, 5, 0);
 spotLight.target.position.set(0, 0, 0);
 spotLight.castShadow = true; // 投射阴影
@@ -74,11 +83,11 @@ spotLight.map = texture
 scene.add(spotLight);
 
 const intensity = 1;
-const rectLight = new THREE.RectAreaLight( 0xffffff, intensity,  width, height );
-rectLight.position.set( 5, 5, 0 );
-rectLight.lookAt( 0, 0, 0 );
+const rectLight = new THREE.RectAreaLight(0xffffff, intensity, width, height);
+rectLight.position.set(5, 5, 0);
+rectLight.lookAt(0, 0, 0);
 rectLight.map = texture
-scene.add( rectLight )
+scene.add(rectLight)
 
 
 /* 
@@ -145,14 +154,17 @@ let textureLoader = new THREE.TextureLoader()
 
 // let mesh=new THREE.Mesh(geometry,material3)
 // scene.add(points,line,mesh)
-// // 创建球体
-// var sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
-// var sphereMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 ,
-//     emissiveIntensity:1.0});
-// var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
-// sphere.position.y = 1; // 将球体放置在平面上方
-// sphere.castShadow = true; // 投射阴影
-// scene.add(sphere);
+// 创建球体
+var sphereGeometry = new THREE.SphereGeometry(1, 32, 32);
+var sphereMaterial = new THREE.MeshStandardMaterial({
+    map: textureVideo,
+    emissiveIntensity: 1.0
+});
+var sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+sphere.position.set(1, 1.5, -2); // 将球体放置在平面上方
+sphere.castShadow = true; // 投射阴影
+sphere.scale.set(0.3, 0.3, 0.3)
+scene.add(sphere);
 let cubeTextureLoader = new THREE.CubeTextureLoader(textureManage)
 let envcubeTexture = cubeTextureLoader.load(
     [
@@ -176,23 +188,68 @@ var planeMaterial = new THREE.MeshPhysicalMaterial({
     roughness: 0.1,
     transparent: true,
     opacity: 1,
-    emissiveIntensity: 1.0
+    emissiveIntensity: 1.0,
+
 })
 
 var plane = new THREE.Mesh(planeGeometry, planeMaterial);
 plane.rotation.x = Math.PI / 2; // 将平面旋转至水平方向
 plane.receiveShadow = true; // 接收阴影
-scene.add(plane);
-const geometry = new THREE.CylinderGeometry(10, 10, 20, 20)
+// scene.add(plane);
+const geometry = new THREE.CylinderGeometry(10, 10, 60, 20)
 const material = new THREE.MeshPhysicalMaterial({
     color: 0x6c6c6c,
     side: THREE.DoubleSide,
-    emissiveIntensity: 1.0
+    emissiveIntensity: 1.0,
+
 })
 
 const cylinder = new THREE.Mesh(geometry, material)
-scene.add(cylinder)
+//scene.add(cylinder)
+//////
+/* 
+ *******水面******
+ */
+// 创建一个平滑的二维样条曲线
+let Group=new THREE.Group()
+const curve = new THREE.SplineCurve([
+    new THREE.Vector2(3520, 5850),
+    new THREE.Vector2(2520, 3350),
+    new THREE.Vector2(1520, 2850),
+    new THREE.Vector2(420, 180),
+    new THREE.Vector2(220, 280),
+    new THREE.Vector2(100, -380),
+    new THREE.Vector2(-500, 780),
+]);
+// 返回曲线上给定位置的点集合
+const points = curve.getPoints(1000);
+let splineShape = new THREE.Shape(points);
+let splineShapeGeometry = new THREE.ShapeGeometry(splineShape);
+let water1 = new Water(splineShapeGeometry, {
+    textureWidth: 1512, // 水浑浊程度，密度
+    textureHeight: 1512, // 水浑浊程度，密度
+    waterNormals: new THREE.TextureLoader().load('textures/waternormals.jpg', (texture) => {
+        texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+    }),
+    sunDirection: new THREE.Vector3(),
+    sunColor: 0x444444,// 0xffffff,
+    waterColor: 0x001e0f,//"#1DA9FC",// 水颜色
+    distortionScale: 3.7,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+    fog: scene.fog !== undefined
 
+});
+water1.position.y = 0;
+water1.position.x = 0;
+water1.rotation.x = Math.PI * -0.5;
+Group.add(water1);
+Group.position.z = 0;
+Group.position.y = 0;
+Group.position.x = 0;
+Group.name = "MyWaterSurfaceDynamicEffectClass";
+scene.add(Group); //网格模型添加到场景中
+/////
 let doors = []
 let wheels = [];
 let carStatus;
@@ -230,7 +287,7 @@ gLTFLoader.loadAsync(require('../assets/models/Lamborghini.glb'))
 
             } else if (obj.name === 'Object_90') {
                 // 玻璃
-              obj.material = glassMaterial
+                obj.material = glassMaterial
             } else if (obj.name === 'Empty001_16' || obj.name === 'Empty002_20') {
                 // 门
                 doors.push(obj)
@@ -318,6 +375,8 @@ function render(time) {//递归实现每一帧的重新渲染
     //  let time = clock.getElapsedTime()
     controls.update()
     // composer.render();
+    TWEEN.update(time)
+    water1.material.uniforms['time'].value += 2.0 / 60.0;
     renderer.render(scene, camera);
     requestAnimationFrame(render);
     //  const time = - performance.now() / 1000;
@@ -329,7 +388,7 @@ function render(time) {//递归实现每一帧的重新渲染
     // }
 
     //grid.position.z = - ( time ) % 1;
-    TWEEN.update(time)
+
 
 }
 render();
@@ -470,3 +529,4 @@ initGUI()
 /* 
 **
  */
+
