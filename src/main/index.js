@@ -66,6 +66,7 @@ scene.add(directionalLight)
 const texture = new THREE.TextureLoader().load(require("../assets/models/back.jpg"))
 var spotLight = new THREE.SpotLight(0xffffff, 10, 100, Math.PI / 4);
 let video = document.getElementById('video');
+video.load()
 video.play();
 video.addEventListener('play', function () {
     this.currentTime = 3;
